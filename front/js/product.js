@@ -61,6 +61,43 @@ fetch(url)
 })
 .then(()=>{
     // Evenement quand clic sur bouton ajouter panier
+    const button = document.getElementById("addToCart");
+    // detection du clic sur bouton ajouter au panier
+    button.addEventListener('click', function(){
+        let color = select.value;
+        let qty = parseInt(document.getElementById("quantity").value);
+        // Verification si il y aune couleur et une quantité saisies
+        if (color != "" && qty != 0){
+            // Mise en place variable etat qui permet de savoir si l'ajout dans local storage est deja fait
+            let etat = false;
+            // Comparaison saisie avec localStorage
+            for (let i = 0; i < localStorage.length; i++){
+                let objLinea = localStorage.getItem("cart"+i);
+                let objJson = JSON.parse(objLinea);
+                // est ce que le produit dans cette couleur est deja present ?
+                if (id == objJson.id && color == objJson.color){
+                    // alors on ajoute la qte
+                    objJson.quantity += qty;
+                    objLinea = JSON.stringify(objJson);
+                    localStorage.setItem("cart"+i,objLinea);
+                    etat = true;
+                }
+            }
+            // Si non, ajout d'une nouvelle entree
+            if (etat === false){
+
+                let cartNb = localStorage.length;
+                let objJson = {
+                    id : id,
+                    color : color,
+                    quantity : qty
+                }
+                let objLinea = JSON.stringify(objJson);
+                localStorage.setItem("cart"+cartNb,objLinea);
+                etat = true;
+            }
+        }
+    })
 })
 .catch(function(error){
     // Une erreur est survenue
