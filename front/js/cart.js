@@ -6,68 +6,52 @@ function createNode(element){
 function append(parent, el) {
     return parent.appendChild(el);
 }
-// Gestion d'evenements
-function changeHandler(id, color){
-    console.log("qte changee pour: "+id+" qui a la couleur "+color);
+//--------------- Gestion d'evenements---------------------------
+
+// Changement de quantité
+function changeQuantity(id, color){
     // Recuperation de la quantité modifiée
-    let newQty = document.getElementById(id+color).value;
+    let newQty = parseInt(document.getElementById(id+color).value);
     // Remise a zero des totaux
     this.totalQty = 0;
     this.totalPrice = 0;
-    console.log("Value modifiée: "+newQty);
-    // Recuperation de l'article dans le localStorage
-    for(i = 0; i < localStorage.length; i++){
-         // Mise en forme json
-         let objLinea = localStorage.getItem("cart"+i);
-         let objJson = JSON.parse(objLinea);
-         let localId = objJson.id;
-         let localColor = objJson.color;
-         if (id == localId && color == localColor){
-            //  puis mise a jour de la quanttité dans le localStorage
-             console.log("Article trouvé !");
-             objJson.quantity = newQty;
-             objLinea = JSON.stringify(objJson);
-             localStorage.setItem("cart"+i, objLinea);
-             console.log(this.spanTotalQty);
-         }
-        //  Recuperation du prix
-        // essayer avec element.closest()
-        article = document.querySelector("[data-id='"+objJson.id+"']");
+    
+    // Mise en forme Json pour appel basket
+    let product = {
+        id : id,
+        "color" : color
+    };
+    // Changement de la quantité via basket
+    let basket = new Basket();
+    basket.changeQuantity(product,newQty);
+    // Récupération de la quantité totale
+    this.totalQty = basket.getNumberProduct();
+    
+    //  Recuperation du prix des articles
+    for (basketProduct of basket.basket){
+
+        article = document.querySelector("[data-id='"+basketProduct.id+"']");
         description = article.querySelector(".cart__item__content__description");
         price = description.children[2].textContent.replace('€','');
-        console.log(price);
-            
         
-        //  Ajout des totaux
-        this.totalQty += parseInt(objJson.quantity);
         // Pour le prix il faut recuperer le prix dans l'article
-        this.totalPrice += parseInt(price) * parseInt(objJson.quantity);
+        this.totalPrice += parseInt(price) * parseInt(basketProduct.quantity);
         this.spanTotalQty.textContent = totalQty;
         this.spanTotalPrice.textContent = totalPrice + ",00";
-        console.log("qty: "+this.totalQty+", prix: "+this.totalPrice);
-        
-
     }
+    
 }
 
-function clickHandler(id, color){
-    console.log("click !");
-    for(i = 0; i < localStorage.length; i++){
-        // Mise en forme json
-        let objLinea = localStorage.getItem("cart"+i);
-        let objJson = JSON.parse(objLinea);
-        let localId = objJson.id;
-        let localColor = objJson.color;
-        if (id == localId && color == localColor){
-            //  puis mise a jour de la quanttité dans le localStorage
-             console.log("Article trouvé !");
-             localStorage.removeItem("cart"+i);
-             window.location.reload();
-             console.log("Article supprimé !");
-
-         }
-    }
-
+// Suppression d'un article
+function deleteProduct(id, color){
+    // Mise en forme json
+   let product = {
+       id : id,
+       "color" : color
+   };
+    //    Suppression de l'article via basket
+    let basket = new Basket;
+    basket.remove(product);
 }
 // Mise en place du parent
 const section = document.getElementById("cart__items");
@@ -84,14 +68,14 @@ if (localStorage.length === 0){
 else if(localStorage.length > 0){
     // Le panier contient des articles
     
-    // Recuperation du localStorage
-    for(i =0; i < localStorage.length; i++ ){
+    // Recuperation du localStorage via la classe Basket
+    let basket = new Basket();
+    for (basketProduct of basket.basket){
         // Mise en forme json
-        let objLinea = localStorage.getItem("cart"+i);
-        let objJson = JSON.parse(objLinea);
-        let id = objJson.id;
-        let color = objJson.color;
-        let qty = objJson.quantity;
+       
+        let id = basketProduct.id;
+        let color = basketProduct.color;
+        let qty = basketProduct.quantity;
 
         // Recuperation des donnees manquantes dans l'api
         let url = "http://localhost:3000/api/products/" + id;
@@ -122,9 +106,9 @@ else if(localStorage.length > 0){
             input.setAttribute("min", "1");
             input.setAttribute("max", "100");
             input.setAttribute("value", qty);
-            input.setAttribute("onchange", "changeHandler('"+id+"', '"+color+"')");
+            input.setAttribute("onchange", "changeQuantity('"+id+"', '"+color+"')");
             input.setAttribute("id", id+color);
-            pDelete.setAttribute("onclick", "clickHandler('"+id+"', '"+color+"')");
+            pDelete.setAttribute("onclick", "deleteProduct('"+id+"', '"+color+"')");
             // mise en place des class CSS
             article.classList.add("cart__item");
             divImg.classList.add("cart__item__img");
@@ -177,6 +161,124 @@ else if(localStorage.length > 0){
             
         });
 
+    
     }
 }
+
+// ----------------------Formulaire---------------------------------
+
+
+
+// Ecouteurs de modification des inputs
+for (formInput of document.querySelector(".cart__order__form")){
+    
+    
+    if(formInput.type != "submit"){
+        // appeller la fonction validInput
+        formInput.addEventListener('change', function(){
+            validInput(this);
+        });
+        
+    }
+    
+}
+
+let form = document.querySelector(".cart__order__form");
+form.addEventListener('submit', function(e){
+    e.preventDefault();
+    let formOk = false;
+    // if (validInput())
+    for (inputCheck of form){
+        if(inputCheck.type != "submit"){
+            if (validInput(inputCheck)){
+                // Si tous les champs sont valides 
+                formOk = true;
+                console.log(inputCheck.name);
+            }
+            else{
+                // Casser la boucle
+                formOk = false;
+                console.log("Une entrée n'est pas valide");
+                break;
+            }
+        }
+    }
+    if (formOk == true){
+        
+        console.log("Formulaire validé !");
+        // Faire une requete POST a l'api avec contact et produits
+        // Recuperer orderid via fetch get
+        // rediriger vers confirmation.html avec orderid dans l url
+    }
+    
+});
+
+
+
+
+
+// Fonction verification des inputs
+const validInput = function(input){
+    // Initialisation du message d'erreur et du pattern RegExp
+    // console.log(input);
+    let errorMsg;
+    let msg;
+    let regExpPattern = '';
+
+    // Mise en place du pattern et du message d'erreur suivant le type d'input
+    if( input.name == "firstName"|| input.name == "lastName" || input.name == "city"){
+        errorMsg = document.getElementById(input.name+"ErrorMsg");
+            // console.log("input fn, ln ou city: "+input.name);
+        regExpPattern = '^[a-zA-ZáàâäãåçéèêëíìîïñóòôöõúùûüýÿæœÁÀÂÄÃÅÇÉÈÊËÍÌÎÏÑÓÒÔÖÕÚÙÛÜÝŸÆŒ\\s-]{3,30}$','g';
+        msg = "Le champ ne doit contenir que des lettres, des tirets ou des espaces.";
+    }
+    else if( input.name == "address"){
+        errorMsg = document.getElementById("addressErrorMsg");
+        // console.log("input adress: "+input.name);
+        regExpPattern = '^[a-zA-Z0-9áàâäãåçéèêëíìîïñóòôöõúùûüýÿæœÁÀÂÄÃÅÇÉÈÊËÍÌÎÏÑÓÒÔÖÕÚÙÛÜÝŸÆŒ.\\s-]{3,30}$','g';
+        msg = "Le champ ne doit contenir que des lettres, des points, des tirets ou des espaces.";
+    }
+    else if( input.name == "email"){
+        errorMsg = document.getElementById("emailErrorMsg");
+        // console.log("input email: "+input.name);
+        regExpPattern = '[a-zA-Z0-9.-_]+[@]{1}[a-zA-Z0-9.-_]+[.]{1}[a-z]{2,10}$','g';
+        msg = "Le format de l'adresse email n'est pas correct.";
+    }
+
+    // L'input doit contenir au moins 3 caractères
+    if (input.value.length < 3){
+        msg = "Le champ doit contenir au moins 3 caractères.";
+        // Affichage message d'erreur
+        errorMsg.textContent = msg;
+        // console.log(errorMsg);
+         // Retourne false pour bloquer l'envoi du formulaire
+        return false;
+    }
+    else{
+        inputRegExp = new RegExp(regExpPattern);
+        // console.log(inputRegExp);
+
+        // Test de l'input
+        let testInput = inputRegExp.test(input.value);
+        // Si ok
+        if (testInput){
+            //  Message d'erreur vide
+            msg = "";
+            // Affichage message d'erreur
+            errorMsg.textContent = msg;
+            // Retourne true pour valider le champ
+            return true;
+        }
+        // Si non
+        else{
+            // Affichage message d'erreur
+            errorMsg.textContent = msg;
+            // Retourne false pour bloquer l'envoi du formulaire
+            return false;
+        }
+    }
+
+}
+
+
     
