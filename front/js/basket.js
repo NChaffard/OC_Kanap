@@ -69,16 +69,4 @@ class Basket{
         }
         return number;
     }
-
-    // Récupération du prix total
-    getTotalPrice(){
-        let total = 0;
-        // Recherche des prix et quantités dans le panier
-        for(let product of this.basket){
-            // Ajout des quantités x prix dans total
-            total += product.quantity * product.price;
-        }
-        return total;
-    }
-
 }

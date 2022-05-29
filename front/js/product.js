@@ -1,27 +1,33 @@
-// fonctions
-function createNode(element){
-    return document.createElement(element);
-}
-
-function append(parent, el) {
-    return parent.appendChild(el);
-}
-// Mise en place des parents
-const imgParent = document.getElementsByClassName("item__img");
-const title = document.getElementById("title");
-const price = document.getElementById("price");
-const description = document.getElementById("description");
-const select = document.getElementById("colors");
-
-
+// ---------------Variables-----------------------
 
 // Récupération du id produit dans l'url de la page
 let navUrl = new URL (window.location.href);
 let id = navUrl.searchParams.get("id");
 
-// mise en place de l'url de l'api
+// Appel du panier
+let basket = new Basket();
+
+// Mise en place de l'url de l'api
 const url = "http://localhost:3000/api/products/" + id;
 
+// Récuperation des balises
+const imgParent = document.getElementsByClassName("item__img");
+const title = document.getElementById("title");
+const price = document.getElementById("price");
+const description = document.getElementById("description");
+const select = document.getElementById("colors");
+const button = document.getElementById("addToCart");
+
+// Fonctions
+function createNode(element){
+    return document.createElement(element);
+}
+
+function append(parent, el){
+    return parent.appendChild(el);
+}
+
+// Remplissage des données liées à l'article
 fetch(url)
 .then((resp) => resp.json())
 .then((product) => {
@@ -61,20 +67,18 @@ fetch(url)
 })
 .then(()=>{
     // Evenement quand clic sur bouton ajouter panier
-    const button = document.getElementById("addToCart");
-    // detection du clic sur bouton ajouter au panier
     button.addEventListener('click', function(){
         let color = select.value;
         let quantity = parseInt(document.getElementById("quantity").value);
         // Verification si il y a une couleur et une quantité saisies
         if (color != "" && quantity != 0){
+            // Mise en forme du produit
             let product = {
                 id : id,
                 "color" : color,
                 "quantity" : quantity
             } ;
-            let basket = new Basket();
-            console.log("La couleur "+product.color+" et la quantité "+product.quantity+" pour le produit "+product.id+" sont présents.");
+            // Ajout du produit au panier
             basket.add(product);
             alert("Produit ajouté au panier !");
         }
@@ -82,12 +86,9 @@ fetch(url)
             alert("Il manque la couleur ou la quantité !");
         }
     })
-
-
 })
 .catch(function(error){
     // Une erreur est survenue
-    console.log(error);
-    
+    console.log(error);   
 });
 
