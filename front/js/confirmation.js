@@ -8,3 +8,5 @@ span = document.getElementById("orderId");
 
 // Intégration de orderId
 span.textContent = orderId;
+// Vidage du localStorage
+localStorage.clear();
