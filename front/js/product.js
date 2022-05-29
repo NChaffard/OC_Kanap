@@ -76,8 +76,14 @@ fetch(url)
             let basket = new Basket();
             console.log("La couleur "+product.color+" et la quantité "+product.quantity+" pour le produit "+product.id+" sont présents.");
             basket.add(product);
+            alert("Produit ajouté au panier !");
+        }
+        else{
+            alert("Il manque la couleur ou la quantité !");
         }
     })
+
+
 })
 .catch(function(error){
     // Une erreur est survenue

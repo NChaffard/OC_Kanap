@@ -27,7 +27,7 @@ class Basket{
         // Si oui ajout de la quantité
         else
         {
-            this.changeQuantity(product, product.quantity);
+            this.changeQuantity(product, foundProduct.quantity + product.quantity);
 
         }
         this.save();
