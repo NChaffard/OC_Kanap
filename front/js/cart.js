@@ -63,7 +63,6 @@ totalPrice = 0;
 // affichage du panier en recuperant les donnees du localStorage
 if (localStorage.length === 0){
     // Panier vide
-    console.log("panier vide !")
 }
 else if(localStorage.length > 0){
     // Le panier contient des articles
@@ -197,22 +196,19 @@ form.addEventListener('submit', function(e){
             else{
                 // Casser la boucle
                 formOk = false;
-                console.log("Une entrée n'est pas valide");
                 break;
             }
         }
     }
     if (formOk == true){
-        
         sendForm();
-        // Faire une requete POST a l'api avec contact et produits
-        // Recuperer orderid via fetch get
-        // rediriger vers confirmation.html avec orderid dans l url
     }
     
 });
-
+// Fonction envoi du formulaire
 const sendForm = function(){
+
+    // Formatage des données à envoyer
     let contact = {
         "firstName": form.firstName.value,
         "lastName": form.lastName.value,
@@ -220,12 +216,13 @@ const sendForm = function(){
         "city": form.city.value,
         "email": form.email.value
     };
+
     let products = [];
     for (let i =0; i < document.querySelectorAll("[data-id]").length; i++){
         products.push(document.querySelectorAll("[data-id]")[i].dataset.id);
     }
-    console.log(contact);
-    console.log(products);
+
+    // Envoi de la requete POST
     fetch("http://localhost:3000/api/products/order", {
         method: 'POST',
         headers: { 
@@ -237,16 +234,13 @@ const sendForm = function(){
         products
     }),
     })
+    // Récupération de orderId
     .then(resp => resp.json())
     .then((order) => {
-        console.log(order);
-        console.log(order.orderId);
+        // Redirection vers confirmation.html avec orderId en parametre
         window.location.href = "./confirmation.html?orderId="+order.orderId;
     });
-
 } 
-
-
 
 // Fonction verification des inputs
 const validInput = function(input){
@@ -310,6 +304,3 @@ const validInput = function(input){
     }
 
 }
-
-
-    
