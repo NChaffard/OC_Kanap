@@ -193,7 +193,6 @@ form.addEventListener('submit', function(e){
             if (validInput(inputCheck)){
                 // Si tous les champs sont valides 
                 formOk = true;
-                console.log(inputCheck.name);
             }
             else{
                 // Casser la boucle
@@ -205,7 +204,7 @@ form.addEventListener('submit', function(e){
     }
     if (formOk == true){
         
-        console.log("Formulaire validé !");
+        sendForm();
         // Faire une requete POST a l'api avec contact et produits
         // Recuperer orderid via fetch get
         // rediriger vers confirmation.html avec orderid dans l url
@@ -213,7 +212,39 @@ form.addEventListener('submit', function(e){
     
 });
 
+const sendForm = function(){
+    let contact = {
+        "firstName": form.firstName.value,
+        "lastName": form.lastName.value,
+        "address": form.address.value,
+        "city": form.city.value,
+        "email": form.email.value
+    };
+    let products = [];
+    for (let i =0; i < document.querySelectorAll("[data-id]").length; i++){
+        products.push(document.querySelectorAll("[data-id]")[i].dataset.id);
+    }
+    console.log(contact);
+    console.log(products);
+    fetch("http://localhost:3000/api/products/order", {
+        method: 'POST',
+        headers: { 
+    'Accept': 'application/json', 
+    'Content-Type': 'application/json' 
+    },
+    body: JSON.stringify({
+        contact,
+        products
+    }),
+    })
+    .then(resp => resp.json())
+    .then((order) => {
+        console.log(order);
+        console.log(order.orderId);
+        window.location.href = "./confirmation.html?orderId="+order.orderId;
+    });
 
+} 
 
 
 

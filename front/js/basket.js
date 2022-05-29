@@ -37,6 +37,8 @@ class Basket{
     remove(product){
         this.basket = this.basket.filter(p => p.id+p.color != product.id+product.color);
         this.save();
+        // Rechargement de la page
+        window.location.reload();
     }
 
     // Modification de la quantité
@@ -51,8 +53,6 @@ class Basket{
             if (foundProduct.quantity <=0){
                 // Alors on supprime le poroduit du panier
                 this.remove(foundProduct);
-                console.log(foundProduct.color);
-                console.log(product.color);
             } else{
                 this.save();
             }   
