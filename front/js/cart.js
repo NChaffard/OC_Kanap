@@ -205,7 +205,6 @@ else if(localStorage.length > 0){
         fetch(url)
         .then((resp) => resp.json())
         .then((product) =>{
-            console.log(product);
             // Création du code HTML de l'article
             let templateHTML = `<article class="cart__item" data-id="${id}" data-color="${color}">
                                     <div class="cart__item__img">
