@@ -37,24 +37,29 @@ function getTotalPrice(){
 
 // Changement de quantité
 function changeQuantity(id, color){
-    // Recuperation de la quantité modifiée
-    let newQty = parseInt(document.getElementById(id+color).value);
-    // Remise a zero des totaux
-    totalQty = 0;
-    totalPrice = 0;
-    
-    // Mise en forme Json pour appel basket
-    let product = {
-        id : id,
-        "color" : color
-    };
-    // Changement de la quantité via basket
-    basket.changeQuantity(product,newQty);
-    // Récupération de la quantité totale
-    totalQty = basket.getNumberProduct();
-    totalPrice = getTotalPrice();
-    spanTotalQty.textContent = totalQty;
-    spanTotalPrice.textContent = totalPrice + ",00";
+
+    // Préparation pour tester la quantité saisie
+    let input = document.getElementById(id+color);
+    if (validInput(input)){
+        // Recuperation de la quantité modifiée sous forme d'entier
+        let newQty = parseInt(input.value);
+        // Remise a zero des totaux
+        totalQty = 0;
+        totalPrice = 0;
+        
+        // Mise en forme Json pour appel basket
+        let product = {
+            id : id,
+            "color" : color
+        };
+        // Changement de la quantité via basket
+        basket.changeQuantity(product,newQty);
+        // Récupération de la quantité totale
+        totalQty = basket.getNumberProduct();
+        totalPrice = getTotalPrice();
+        spanTotalQty.textContent = totalQty;
+        spanTotalPrice.textContent = totalPrice + ",00";
+    }
 }
 
 // Suppression d'un article
@@ -85,23 +90,36 @@ const validInput = function(input){
     }
     else if( input.name == "address"){
         errorMsg = document.getElementById("addressErrorMsg");
-        regExpPattern = '^[a-zA-Z0-9áàâäãåçéèêëíìîïñóòôöõúùûüýÿæœÁÀÂÄÃÅÇÉÈÊËÍÌÎÏÑÓÒÔÖÕÚÙÛÜÝŸÆŒ.\\s-]{3,30}$','g';
-        msg = "Le champ ne doit contenir que des lettres, des points, des tirets ou des espaces.";
+        regExpPattern = '^[a-zA-Z0-9áàâäãåçéèêëíìîïñóòôöõúùûüýÿæœÁÀÂÄÃÅÇÉÈÊËÍÌÎÏÑÓÒÔÖÕÚÙÛÜÝŸÆŒ,.\\s-]{3,30}$','g';
+        msg = "Le champ ne doit contenir que des lettres, des points, des virgules, des tirets ou des espaces.";
     }
     else if( input.name == "email"){
         errorMsg = document.getElementById("emailErrorMsg");
-        regExpPattern = '[a-zA-Z0-9.-_]+[@]{1}[a-zA-Z0-9.-_]+[.]{1}[a-z]{2,10}$','g';
+        regExpPattern = '^[a-zA-Z0-9.-_]+[@]{1}[a-zA-Z0-9.-_]+[.]{1}[a-z]{2,10}$','g';
         msg = "Le format de l'adresse email n'est pas correct.";
     }
+    else if ( input.name == "itemQuantity"){
+        errorMsg = document.getElementById("quantityErrorMsg"+input.id);
+        regExpPattern = '^[0-9]{1,3}$','g';    
+        msg = "La quantité doit être un nombre entier !";
+    }
 
-    // L'input doit contenir au moins 3 caractères
-    if (input.value.length < 3){
-        msg = "Le champ doit contenir au moins 3 caractères.";
+    // L'input ne doit pas être vide
+    if (input.value.length < 1){
+        msg = "Le champ ne doit pas être vide.";
         // Affichage message d'erreur
         errorMsg.textContent = msg;
          // Retourne false pour bloquer l'envoi du formulaire
         return false;
-    } else {
+    }
+    else if ( input.name == "itemQuantity" && input.value > 100){
+        msg ="La quantité est de 100 maximum !";
+        // Affichage message d'erreur
+        errorMsg.textContent = msg;
+         // Retourne false pour bloquer l'envoi du formulaire
+        return false;
+    }
+    else {
         // Mise en place de la regExp
         inputRegExp = new RegExp(regExpPattern);
 
@@ -202,7 +220,7 @@ else if(localStorage.length > 0){
                                         <div class="cart__item__content__settings">
                                             <div class="cart__item__content__settings__quantity">
                                                 <p>Qté : </p>
-                                                <input type="number" class="itemQuantity" id="${id}${color}" name="itemQuantity" min="1" max="100" value="${qty}" onchange="changeQuantity('${id}', '${color}')">
+                                                <input type="number" class="itemQuantity" id="${id}${color}" name="itemQuantity" min="1" max="100" value="${qty}" onchange="changeQuantity('${id}', '${color}')"><p id="quantityErrorMsg${id}${color}" style="color:#fbbcbc"></p>
                                             </div>
                                             <div class="cart__item__content__settings__delete">
                                                 <p class="deleteItem" onclick="deleteProduct('${id}', '${color}')">Supprimer</p>
@@ -212,11 +230,11 @@ else if(localStorage.length > 0){
                                 </article>`;
             // Ajout du code HTML dans la page
             section.innerHTML+= templateHTML;
+            totalPrice += product.price * qty
         })
         .then(()=>{
             // Affichage total articles et prix
             totalQty = basket.getNumberProduct();
-            totalPrice = getTotalPrice();
             spanTotalQty.textContent = totalQty;
             spanTotalPrice.textContent = totalPrice + ",00";
         })
@@ -265,14 +283,14 @@ form.addEventListener('submit', function(e){
     // Vérification de la validité du formulaire
     if (formOk == true){
         // Vérification de l'existence du panier
-        if (localStorage > 0){
+        if (localStorage.length > 0){
 
             // Si oui envoyer formulaire
             sendForm();
         }
         // Si non afficher un message et bloquer l'envoi
         else{
-            alert("Le panier est vide !")
+            alert("Le panier est vide !");
         }
     }  
 });

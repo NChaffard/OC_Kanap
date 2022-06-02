@@ -15,10 +15,12 @@ const imgParent = document.getElementsByClassName("item__img");
 const title = document.getElementById("title");
 const price = document.getElementById("price");
 const description = document.getElementById("description");
+const errorColorParent = document.getElementsByClassName("item__content__settings__color")[0];
+const errorQuantityParent = document.getElementsByClassName("item__content__settings__quantity")[0];
 const select = document.getElementById("colors");
 const button = document.getElementById("addToCart");
 
-// Fonctions
+// Fonctions création et affichage d'élements
 function createNode(element){
     return document.createElement(element);
 }
@@ -63,15 +65,61 @@ fetch(url)
         
         // Affichage du html
         append(select, option);
-    }  
+    }
+    
+    // Mise en place messages d'erreurs
+    let spanErrorColor = createNode("span");
+    let spanErrorQuantity = createNode("span");
+
+    spanErrorColor.setAttribute("style", "color: #fbbcbc");
+    spanErrorQuantity.setAttribute("style", "color: #fbbcbc");
+
+
+    append(errorColorParent, spanErrorColor);
+    append(errorQuantityParent, spanErrorQuantity);
+
 })
 .then(()=>{
     // Evenement quand clic sur bouton ajouter panier
     button.addEventListener('click', function(){
+        let spanErrorColor = errorColorParent.lastChild;
+        let spanErrorQuantity = errorQuantityParent.lastChild;
+        let msg = "";
+        spanErrorColor.textContent = msg;
+        spanErrorQuantity.textContent = msg;
+        
+        // Récupération de la couleur
         let color = select.value;
-        let quantity = parseInt(document.getElementById("quantity").value);
-        // Verification si il y a une couleur et une quantité saisies
-        if (color != "" && quantity != 0){
+        
+        // Préparation pour tester la quantité saisie
+        let input = document.getElementById("quantity").value;
+        let numberRegExp = new RegExp('^[0-9]{1,3}$','g');
+        let inputTest = numberRegExp.test(input);
+        
+        // Récupération de la quantité sous forme d'entier
+        let quantity = parseInt(input);
+        if (color == ""){
+            msg ="Il faut choisir une couleur !";
+            return spanErrorColor.textContent = msg;
+        }
+        // Vérification de la quantité saisie
+        if (isNaN(quantity)){
+            msg ="La quantité doit être un nombre !";
+            return spanErrorQuantity.textContent = msg;
+        }
+        else if (quantity > 100){
+            msg ="La quantité maximum est de 100 articles !";
+            return spanErrorQuantity.textContent = msg;
+        }
+        else if (quantity == 0){
+            msg ="La quantité ne peut pas être nulle !";
+            return spanErrorQuantity.textContent = msg;
+        }
+        else if (!inputTest){
+            msg ="La quantité doit être un nombre entier !";
+            return spanErrorQuantity.textContent = msg;
+        }
+        else{      
             // Mise en forme du produit
             let product = {
                 id : id,
@@ -80,12 +128,9 @@ fetch(url)
             } ;
             // Ajout du produit au panier
             basket.add(product);
-            alert("Produit ajouté au panier !");
+            return alert("Produit ajouté au panier !");
         }
-        else{
-            alert("Il manque la couleur ou la quantité !");
-        }
-    })
+        })
 })
 .catch(function(error){
     // Une erreur est survenue

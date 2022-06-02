@@ -47,6 +47,9 @@ class Basket{
         let foundProduct = this.basket.find(p => p.id+p.color == product.id+product.color);
         // Si oui
         if (foundProduct != undefined){
+            if (quantity > 100){
+                quantity = 100;
+            }
             // Ajout de la quantité supplémentaire à celle du panier
             foundProduct.quantity = quantity;
             // Si la quantité du panier est inferieur ou égale à 0
@@ -69,4 +72,5 @@ class Basket{
         }
         return number;
     }
+
 }
