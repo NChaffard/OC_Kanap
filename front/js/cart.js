@@ -4,11 +4,11 @@
 const section = document.getElementById("cart__items");
 
 // Récupération du formulaire de contact
-let form = document.querySelector(".cart__order__form");
+const form = document.querySelector(".cart__order__form");
 
 // Récuperation balises totaux
-let spanTotalQty = document.getElementById("totalQuantity");
-let spanTotalPrice = document.getElementById("totalPrice");
+const spanTotalQty = document.getElementById("totalQuantity");
+const spanTotalPrice = document.getElementById("totalPrice");
 
 
 // Creation variable quantité totale et prix total
@@ -19,6 +19,55 @@ let totalPrice = 0;
 let basket = new Basket();
 
 //--------------- Gestion d'evenements du panier---------------------------
+
+// Récupération des produits du panier à afficher
+async function getProducts(){
+    // Initialisation du template à afficher
+    let templateHTML = '';
+    // Récupération des produits dans le panier
+    for (basketProduct of basket.basket){
+    let id = basketProduct.id;
+    let color = basketProduct.color;
+    let quantity = basketProduct.quantity;
+    // Récupération des données manquantes dans l'api
+    let url = "http://localhost:3000/api/products/" + id;
+    let apiProduct = await fetch(url).then((resp) => resp.json());
+    let image = apiProduct.imageUrl;
+    let alt = apiProduct.altTxt;
+    let name = apiProduct.name;
+    let price = apiProduct.price;
+    // Ajout du code HTML de l'article
+    templateHTML += `<article class="cart__item" data-id="${id}" data-color="${color}">
+                            <div class="cart__item__img">
+                                <img src="${image}" alt="${alt}">
+                            </div>
+                            <div class="cart__item__content">
+                                <div class="cart__item__content__description">
+                                    <h2>${name}</h2>
+                                    <p>${color}</p>
+                                    <p>${price},00 €</p>
+                                </div>
+                                <div class="cart__item__content__settings">
+                                    <div class="cart__item__content__settings__quantity">
+                                        <p>Qté : </p>
+                                        <input type="number" class="itemQuantity" name="itemQuantity" min="1" max="100" value="${quantity}"><p id="quantityErrorMsg${id}${color}" style="color:#fbbcbc"></p>
+                                    </div>
+                                    <div class="cart__item__content__settings__delete">
+                                        <p class="deleteItem">Supprimer</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </article>`;
+    }
+    return templateHTML;
+    }
+// Affichage des produits du panier
+function displayProducts(templateHTML){
+    // Ajout du code HTML dans la page
+    section.innerHTML+= templateHTML;   
+
+}
+
 // Récuperation du prix total
 function getTotalPrice(){
     //  Recuperation du prix des articles
@@ -33,19 +82,16 @@ function getTotalPrice(){
        total += parseInt(price) * parseInt(basketProduct.quantity);
    }
    return total;
-   }
+}
 
 // Changement de quantité
-function changeQuantity(id, color){
-
-    // Préparation pour tester la quantité saisie
-    let input = document.getElementById(id+color);
+function changeQuantity(input){
+    let article = input.parentElement.parentElement.parentElement.parentElement;
+    let id = article.dataset.id;
+    let color = article.dataset.color;
     if (validInput(input)){
         // Recuperation de la quantité modifiée sous forme d'entier
         let newQty = parseInt(input.value);
-        // Remise a zero des totaux
-        totalQty = 0;
-        totalPrice = 0;
         
         // Mise en forme Json pour appel basket
         let product = {
@@ -54,22 +100,35 @@ function changeQuantity(id, color){
         };
         // Changement de la quantité via basket
         basket.changeQuantity(product,newQty);
-        // Récupération de la quantité totale
-        totalQty = basket.getNumberProduct();
-        totalPrice = getTotalPrice();
-        spanTotalQty.textContent = totalQty;
-        spanTotalPrice.textContent = totalPrice + ",00";
+        // Affichage des totaux
+        displayTotals();
     }
 }
 
+// Affichage des totaux
+function displayTotals(){
+    // Remise a zero des totaux
+    totalQty = 0;
+    totalPrice = 0;
+    // Récupération de la quantité totale
+    totalQty = basket.getNumberProduct();
+    totalPrice = getTotalPrice();
+    spanTotalQty.textContent = totalQty;
+    spanTotalPrice.textContent = totalPrice + ",00";   
+}
+
 // Suppression d'un article
-function deleteProduct(id, color){
+function deleteProduct(input){
+    let article = input.parentElement.parentElement.parentElement.parentElement;
+    let id = article.dataset.id;
+    let color = article.dataset.color;
+
     // Mise en forme json
    let product = {
        id : id,
        "color" : color
    };
-    //    Suppression de l'article via basket
+    // Suppression de l'article via basket
     basket.remove(product);
 }
 // -----------------------Gestion des évenements du formulaire-------------------------------
@@ -99,7 +158,7 @@ const validInput = function(input){
         msg = "Le format de l'adresse email n'est pas correct.";
     }
     else if ( input.name == "itemQuantity"){
-        errorMsg = document.getElementById("quantityErrorMsg"+input.id);
+        errorMsg = input.nextSibling;
         regExpPattern = '^[0-9]{1,3}$','g';    
         msg = "La quantité doit être un nombre entier !";
     }
@@ -142,7 +201,6 @@ const validInput = function(input){
             return false;
         }
     }
-
 }
 
 // Fonction envoi du formulaire
@@ -191,57 +249,32 @@ if (localStorage.length === 0){
 }
 else if(localStorage.length > 0){
     // Le panier contient des articles
-    
-    // Recuperation du localStorage via la classe Basket
-    for (basketProduct of basket.basket){
-        // Mise en forme json
-       
-        let id = basketProduct.id;
-        let color = basketProduct.color;
-        let qty = basketProduct.quantity;
-
-        // Recuperation des donnees manquantes dans l'api
-        let url = "http://localhost:3000/api/products/" + id;
-        fetch(url)
-        .then((resp) => resp.json())
-        .then((product) =>{
-            // Création du code HTML de l'article
-            let templateHTML = `<article class="cart__item" data-id="${id}" data-color="${color}">
-                                    <div class="cart__item__img">
-                                        <img src="${product.imageUrl}" alt="${product.altTxt}">
-                                    </div>
-                                    <div class="cart__item__content">
-                                        <div class="cart__item__content__description">
-                                            <h2>${product.name}</h2>
-                                            <p>${color}</p>
-                                            <p>${product.price},00 €</p>
-                                        </div>
-                                        <div class="cart__item__content__settings">
-                                            <div class="cart__item__content__settings__quantity">
-                                                <p>Qté : </p>
-                                                <input type="number" class="itemQuantity" id="${id}${color}" name="itemQuantity" min="1" max="100" value="${qty}" onchange="changeQuantity('${id}', '${color}')"><p id="quantityErrorMsg${id}${color}" style="color:#fbbcbc"></p>
-                                            </div>
-                                            <div class="cart__item__content__settings__delete">
-                                                <p class="deleteItem" onclick="deleteProduct('${id}', '${color}')">Supprimer</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </article>`;
-            // Ajout du code HTML dans la page
-            section.innerHTML+= templateHTML;
-            totalPrice += product.price * qty
-        })
-        .then(()=>{
-            // Affichage total articles et prix
-            totalQty = basket.getNumberProduct();
-            spanTotalQty.textContent = totalQty;
-            spanTotalPrice.textContent = totalPrice + ",00";
-        })
-        .catch(function(error){
-            // Une erreur est survenue
-            console.log(error);
-        });
-    }
+    // Récupération des articles
+    getProducts()
+    .then((products) => {
+        // Affichage des produits
+        displayProducts(products);
+    })
+    .then(()=>{
+        // Affichage des totaux
+        displayTotals();
+    })
+    .then(()=>{
+        // Récupération des inputs quntité du panier
+        let inputs = document.getElementsByName("itemQuantity");
+        for (input of inputs){
+            // Ajout écouteur change sur les inputs
+            input.addEventListener('change', function(){
+                changeQuantity(this);
+            });
+            // Récupération du bouton Supprimer
+            deleteInput = input.parentElement.nextElementSibling.children[0];
+            // Ajout écouteur click sur le bouton Supprimer
+            deleteInput.addEventListener('click', function(){
+                deleteProduct(this);
+            })
+        }
+    });
 }
 
 // ----------------------Formulaire---------------------------------
@@ -283,7 +316,6 @@ form.addEventListener('submit', function(e){
     if (formOk == true){
         // Vérification de l'existence du panier
         if (localStorage.length > 0){
-
             // Si oui envoyer formulaire
             sendForm();
         }
