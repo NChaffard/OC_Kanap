@@ -61,12 +61,13 @@ async function getProducts(){
     }
     return templateHTML;
     }
+
 // Affichage des produits du panier
 function displayProducts(templateHTML){
     // Ajout du code HTML dans la page
     section.innerHTML+= templateHTML;   
-
 }
+
 
 // Récuperation du prix total
 function getTotalPrice(){
@@ -82,6 +83,18 @@ function getTotalPrice(){
        total += parseInt(price) * parseInt(basketProduct.quantity);
    }
    return total;
+}
+
+// Affichage des totaux
+function displayTotals(){
+    // Remise a zero des totaux
+    totalQty = 0;
+    totalPrice = 0;
+    // Récupération de la quantité totale
+    totalQty = basket.getNumberProduct();
+    totalPrice = getTotalPrice();
+    spanTotalQty.textContent = totalQty;
+    spanTotalPrice.textContent = totalPrice + ",00";   
 }
 
 // Changement de quantité
@@ -100,21 +113,9 @@ function changeQuantity(input){
         };
         // Changement de la quantité via basket
         basket.changeQuantity(product,newQty);
-        // Affichage des totaux
+        // Affichage des totaux mis à jour
         displayTotals();
     }
-}
-
-// Affichage des totaux
-function displayTotals(){
-    // Remise a zero des totaux
-    totalQty = 0;
-    totalPrice = 0;
-    // Récupération de la quantité totale
-    totalQty = basket.getNumberProduct();
-    totalPrice = getTotalPrice();
-    spanTotalQty.textContent = totalQty;
-    spanTotalPrice.textContent = totalPrice + ",00";   
 }
 
 // Suppression d'un article
@@ -131,8 +132,8 @@ function deleteProduct(input){
     // Suppression de l'article via basket
     basket.remove(product);
 }
-// -----------------------Gestion des évenements du formulaire-------------------------------
 
+// -----------------------Gestion des évenements du formulaire-------------------------------
 
 // Fonction verification des inputs
 const validInput = function(input){
@@ -240,14 +241,55 @@ const sendForm = function(){
     });
 } 
 
+// Ecouteurs de modification des inputs
+for (formInput of form){
+    if(formInput.type != "submit"){
+        // Appeller la fonction validInput
+        formInput.addEventListener('change', function(){
+            validInput(this);
+        });    
+    }   
+}
+
+// Ecouteur du bouton de validation de la commande
+form.addEventListener('submit', function(e){
+    // Bloquer la soumission du formualire
+    e.preventDefault();
+    // Initialisation dla variable qui valide les inputs du formulaire
+    let formOk = false;
+    // Vérification de la validité des inputs
+    for (inputCheck of form){
+        // Ne pas vérifier submit
+        if(inputCheck.type != "submit"){
+            if (validInput(inputCheck)){
+                // Si tous les champs sont valides 
+                formOk = true;
+            }
+            else{
+                // Casser la boucle
+                formOk = false;
+                break;
+            }
+        }
+    }
+    // Vérification de la validité du formulaire
+    if (formOk == true){
+        // Vérification de l'existence du panier
+        if (localStorage.length > 0){
+            // Si oui envoyer formulaire
+            sendForm();
+        }
+        // Si non afficher un message et bloquer l'envoi
+        else{
+            alert("Le panier est vide !");
+        }
+    }  
+});
 
 // --------------------------Affichage du panier----------------
 
 // affichage du panier en recuperant les donnees du localStorage
-if (localStorage.length === 0){
-    // Panier vide
-}
-else if(localStorage.length > 0){
+if(localStorage.length > 0){
     // Le panier contient des articles
     // Récupération des articles
     getProducts()
@@ -276,52 +318,3 @@ else if(localStorage.length > 0){
         }
     });
 }
-
-// ----------------------Formulaire---------------------------------
-
-// Ecouteurs de modification des inputs
-for (formInput of form){
-    
-    if(formInput.type != "submit"){
-        // Appeller la fonction validInput
-        formInput.addEventListener('change', function(){
-            validInput(this);
-        });
-        
-    }   
-}
-// Ecouteur du bouton de validation de la commande
-form.addEventListener('submit', function(e){
-    // Bloquer la soumission du formualire
-    e.preventDefault();
-    // Initialisation dla variable qui valide les inputs du formulaire
-    let formOk = false;
-    // Vérification de la validité des inputs
-    for (inputCheck of form){
-        // Ne pas vérifier submit
-        if(inputCheck.type != "submit"){
-
-            if (validInput(inputCheck)){
-                // Si tous les champs sont valides 
-                formOk = true;
-            }
-            else{
-                // Casser la boucle
-                formOk = false;
-                break;
-            }
-        }
-    }
-    // Vérification de la validité du formulaire
-    if (formOk == true){
-        // Vérification de l'existence du panier
-        if (localStorage.length > 0){
-            // Si oui envoyer formulaire
-            sendForm();
-        }
-        // Si non afficher un message et bloquer l'envoi
-        else{
-            alert("Le panier est vide !");
-        }
-    }  
-});

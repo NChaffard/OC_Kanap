@@ -82,8 +82,9 @@ fetch(url)
 .then(()=>{
     // Evenement quand clic sur bouton ajouter panier
     button.addEventListener('click', function(){
-        let spanErrorColor = errorColorParent.lastChild;
-        let spanErrorQuantity = errorQuantityParent.lastChild;
+        // Récupération des balises pour les messages d'erreurs
+        const spanErrorColor = errorColorParent.lastChild;
+        const spanErrorQuantity = errorQuantityParent.lastChild;
         let msg = "";
         spanErrorColor.textContent = msg;
         spanErrorQuantity.textContent = msg;
