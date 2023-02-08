@@ -225,13 +225,13 @@ const sendForm = function(){
     fetch("http://localhost:3000/api/products/order", {
         method: 'POST',
         headers: { 
-    'Accept': 'application/json', 
-    'Content-Type': 'application/json' 
-    },
-    body: JSON.stringify({
-        contact,
-        products
-    }),
+                'Accept': 'application/json', 
+                'Content-Type': 'application/json' 
+        },
+        body: JSON.stringify({
+            contact,
+            products
+        }),
     })
     // Récupération de orderId
     .then(resp => resp.json())
@@ -240,6 +240,8 @@ const sendForm = function(){
         window.location.href = "./confirmation.html?orderId="+order.orderId;
     });
 } 
+
+// ------------------------Ecouteurs formulaire-------------------------
 
 // Ecouteurs de modification des inputs
 for (formInput of form){
